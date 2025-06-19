@@ -1,0 +1,31 @@
+FROM ubuntu:22.04
+
+# Install system dependencies
+RUN apt-get update && \
+    apt-get install -y openjdk-17-jdk python3.9 python3-pip g++ cmake make git wget curl && \
+    apt-get clean && rm -rf /var/lib/apt/lists/*
+
+# Set JAVA_HOME
+ENV JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
+ENV PATH="$JAVA_HOME/bin:$PATH"
+
+# Install Python dependencies
+COPY python/requirements.txt /tmp/requirements.txt
+RUN pip3 install --upgrade pip && pip3 install -r /tmp/requirements.txt
+
+# Install Java dependencies (Gradle Wrapper)
+COPY java/ /app/java/
+WORKDIR /app/java
+RUN ./gradlew build || true
+
+# Install C++ dependencies (yaml-cpp, gtest, etc. if needed)
+WORKDIR /app
+RUN git clone https://github.com/jbeder/yaml-cpp.git && \
+    cd yaml-cpp && mkdir build && cd build && cmake .. && make && make install
+
+# Copy the rest of the project
+WORKDIR /app
+COPY . /app
+
+# Default command
+CMD ["/bin/bash"] 

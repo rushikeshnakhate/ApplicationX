@@ -1,0 +1,11 @@
+rootProject.name = 'applicationsx-utils'
+
+include 'quickfiximpl'
+include 'ringbuffer'
+include 'yamlloader'
+include 'fixdictionarygenerator'
+
+project(':quickfiximpl').projectDir = file('plugins/quickfiximpl')
+project(':ringbuffer').projectDir = file('plugins/ringbuffer')
+project(':yamlloader').projectDir = file('plugins/yamlloader')
+project(':fixdictionarygenerator').projectDir = file('plugins/fixdictionarygenerator')

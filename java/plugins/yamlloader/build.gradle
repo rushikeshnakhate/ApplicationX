@@ -1,0 +1,25 @@
+plugins {
+    id 'java-library'
+}
+
+dependencies {
+    api 'org.yaml:snakeyaml:2.0'
+}
+
+java {
+    withSourcesJar()
+    withJavadocJar()
+}
+
+// Library-specific configurations
+jar {
+    manifest {
+        attributes(
+            'Implementation-Title': 'YamlLoader',
+            'Implementation-Version': project.version,
+            'Built-By': System.getProperty('user.name'),
+            'Built-Date': new Date(),
+            'Built-JDK': System.getProperty('java.version')
+        )
+    }
+} 

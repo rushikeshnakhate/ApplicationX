@@ -1,0 +1,45 @@
+plugins {
+    id 'java'
+    id 'application'
+}
+
+dependencies {
+    implementation 'org.quickfixj:quickfixj-all:2.3.1'
+}
+
+// Executable-specific configurations
+application {
+    mainClass = 'com.applicationsx.quickfiximpl.QuickFixDemo'
+}
+
+// Create a distribution with scripts
+distributions {
+    main {
+        contents {
+            from('src/main/resources') {
+                into 'config'
+            }
+        }
+    }
+}
+
+// Executable-specific jar configuration
+jar {
+    manifest {
+        attributes(
+            'Main-Class': 'com.applicationsx.quickfiximpl.QuickFixDemo',
+            'Implementation-Title': 'QuickFixImpl',
+            'Implementation-Version': project.version,
+            'Built-By': System.getProperty('user.name'),
+            'Built-Date': new Date(),
+            'Built-JDK': System.getProperty('java.version')
+        )
+    }
+    
+    // Include dependencies in the jar for standalone execution
+    from {
+        configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
+    }
+    
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+} 

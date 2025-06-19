@@ -1,0 +1,18 @@
+[tool.poetry]
+name = "crosslangutils"
+version = "0.1.0"
+description = "Cross-language utilities project"
+authors = ["Your Name <you@example.com>"]
+
+[tool.poetry.dependencies]
+python = ">=3.8,<3.12"
+PyYAML = ">=5.4"
+
+[tool.poetry.packages]
+quickfiximpl = { from = "src/quickfiximpl" }
+yaml_loader = { from = "src/yaml_loader" }
+ringbuffer = { from = "src/ringbuffer" }
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api" 

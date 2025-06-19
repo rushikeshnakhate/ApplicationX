@@ -1,0 +1,17 @@
+{
+  "orders": [
+    {
+      "id": "ORD001",
+      "type": "market",
+      "symbol": "AAPL",
+      "quantity": 100
+    },
+    {
+      "id": "ORD002",
+      "type": "limit",
+      "symbol": "GOOGL",
+      "quantity": 50,
+      "price": 1500.00
+    }
+  ]
+}

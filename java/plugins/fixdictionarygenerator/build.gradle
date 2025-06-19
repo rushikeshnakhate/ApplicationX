@@ -1,0 +1,26 @@
+plugins {
+    id 'java-library'
+}
+
+dependencies {
+    api 'org.apache.commons:commons-lang3:3.12.0'
+    // No XML dependencies needed; Java XML APIs are included in the JDK
+}
+
+java {
+    withSourcesJar()
+    withJavadocJar()
+}
+
+// Library-specific configurations
+jar {
+    manifest {
+        attributes(
+            'Implementation-Title': 'FixDictionaryGenerator',
+            'Implementation-Version': project.version,
+            'Built-By': System.getProperty('user.name'),
+            'Built-Date': new Date(),
+            'Built-JDK': System.getProperty('java.version')
+        )
+    }
+} 

@@ -1,0 +1,31 @@
+{
+  "version": "1.0",
+  "containers": [
+    {
+      "name": "applicationx-java-container",
+      "image": "applicationx-java21",
+      "build": {
+        "context": "./java/developers-utils",
+        "dockerfile": "Dockerfile"
+      },
+      "ports": [
+        {
+          "containerPort": 22,
+          "hostPort": 2222
+        }
+      ],
+      "volumes": [
+        {
+          "hostPath": "/d/ApplicationX/docker_persist/repo",
+          "containerPath": "/root/java"
+        },
+        {
+          "hostPath": "/d/ApplicationX/docker_persist/settings",
+          "containerPath": "/root"
+        }
+      ],
+      "env": [],
+      "command": ["/usr/sbin/sshd", "-D"]
+    }
+  ]
+} 

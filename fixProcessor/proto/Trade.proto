@@ -1,0 +1,28 @@
+syntax = "proto3";
+
+package fixprocessor;
+
+message Trade {
+  oneof action {
+    NewOrder new_order = 1;
+    Cancel cancel = 2;
+    Amend amend = 3;
+  }
+}
+
+message NewOrder {
+  string order_id = 1;
+  string symbol = 2;
+  int32 quantity = 3;
+  double price = 4;
+}
+
+message Cancel {
+  string order_id = 1;
+}
+
+message Amend {
+  string order_id = 1;
+  int32 new_quantity = 2;
+  double new_price = 3;
+}

@@ -1,0 +1,111 @@
+{% extends 'base.html' %}
+{% block title %}{{ action }} Job - Admin Portal{% endblock %}
+{% block content %}
+<h2>{{ action }} Job</h2>
+<form method="post">
+  <div class="row">
+    <div class="col-md-6">
+      <div class="mb-3">
+        <label for="customer_name" class="form-label">Customer Name *</label>
+        <input type="text" class="form-control" id="customer_name" name="customer_name" value="{{ job.customer_name if job else '' }}" required>
+      </div>
+      <div class="mb-3">
+        <label for="customer_email" class="form-label">Customer Email</label>
+        <input type="email" class="form-control" id="customer_email" name="customer_email" value="{{ job.customer_email if job else '' }}">
+      </div>
+      <div class="mb-3">
+        <label for="customer_mobile" class="form-label">Customer Mobile</label>
+        <input type="text" class="form-control" id="customer_mobile" name="customer_mobile" value="{{ job.customer_mobile if job else '' }}">
+      </div>
+      <div class="mb-3">
+        <label for="customer_reference" class="form-label">Customer Reference</label>
+        <input type="text" class="form-control" id="customer_reference" name="customer_reference" value="{{ job.customer_reference if job else '' }}">
+      </div>
+      <div class="mb-3">
+        <label for="passenger_name" class="form-label">Passenger Name</label>
+        <input type="text" class="form-control" id="passenger_name" name="passenger_name" value="{{ job.passenger_name if job else '' }}">
+      </div>
+      <div class="mb-3">
+        <label for="passenger_email" class="form-label">Passenger Email</label>
+        <input type="email" class="form-control" id="passenger_email" name="passenger_email" value="{{ job.passenger_email if job else '' }}">
+      </div>
+      <div class="mb-3">
+        <label for="passenger_mobile" class="form-label">Passenger Mobile</label>
+        <input type="text" class="form-control" id="passenger_mobile" name="passenger_mobile" value="{{ job.passenger_mobile if job else '' }}">
+      </div>
+      <div class="mb-3">
+        <label for="type_of_service" class="form-label">Type of Service</label>
+        <input type="text" class="form-control" id="type_of_service" name="type_of_service" value="{{ job.type_of_service if job else '' }}">
+      </div>
+      <div class="mb-3">
+        <label for="pickup_date" class="form-label">Date *</label>
+        <input type="date" class="form-control" id="pickup_date" name="pickup_date" value="{{ job.pickup_date if job else '' }}" required>
+      </div>
+      <div class="mb-3">
+        <label for="pickup_time" class="form-label">Time of Pick Up</label>
+        <input type="time" class="form-control" id="pickup_time" name="pickup_time" value="{{ job.pickup_time if job else '' }}">
+      </div>
+      <div class="mb-3">
+        <label for="pickup_location" class="form-label">Pick-up Location</label>
+        <input type="text" class="form-control" id="pickup_location" name="pickup_location" value="{{ job.pickup_location if job else '' }}">
+      </div>
+      <div class="mb-3">
+        <label for="dropoff_location" class="form-label">Drop-Off Location</label>
+        <input type="text" class="form-control" id="dropoff_location" name="dropoff_location" value="{{ job.dropoff_location if job else '' }}">
+      </div>
+    </div>
+    <div class="col-md-6">
+      <div class="mb-3">
+        <label for="vehicle_type" class="form-label">Vehicle Type</label>
+        <input type="text" class="form-control" id="vehicle_type" name="vehicle_type" value="{{ job.vehicle_type if job else '' }}">
+      </div>
+      <div class="mb-3">
+        <label for="vehicle_number" class="form-label">Vehicle Number</label>
+        <input type="text" class="form-control" id="vehicle_number" name="vehicle_number" value="{{ job.vehicle_number if job else '' }}">
+      </div>
+      <div class="mb-3">
+        <label for="driver_contact" class="form-label">Driver Contact</label>
+        <input type="text" class="form-control" id="driver_contact" name="driver_contact" value="{{ job.driver_contact if job else '' }}">
+      </div>
+      <div class="mb-3">
+        <label for="payment_mode" class="form-label">Payment Mode</label>
+        <input type="text" class="form-control" id="payment_mode" name="payment_mode" value="{{ job.payment_mode if job else '' }}">
+      </div>
+      <div class="mb-3">
+        <label for="payment_status" class="form-label">Payment Status</label>
+        <input type="text" class="form-control" id="payment_status" name="payment_status" value="{{ job.payment_status if job else '' }}">
+      </div>
+      <div class="mb-3">
+        <label for="order_status" class="form-label">Order Status</label>
+        <input type="text" class="form-control" id="order_status" name="order_status" value="{{ job.order_status if job else '' }}">
+      </div>
+      <div class="mb-3">
+        <label for="message" class="form-label">Message</label>
+        <textarea class="form-control" id="message" name="message">{{ job.message if job else '' }}</textarea>
+      </div>
+      <div class="mb-3">
+        <label for="remarks" class="form-label">Remarks</label>
+        <textarea class="form-control" id="remarks" name="remarks">{{ job.remarks if job else '' }}</textarea>
+      </div>
+      <div class="form-check mb-2">
+        <input class="form-check-input" type="checkbox" id="has_additional_stop" name="has_additional_stop" {% if job and job.has_additional_stop %}checked{% endif %}>
+        <label class="form-check-label" for="has_additional_stop">Has Additional Stop</label>
+      </div>
+      <div class="form-check mb-2">
+        <input class="form-check-input" type="checkbox" id="has_request" name="has_request" {% if job and job.has_request %}checked{% endif %}>
+        <label class="form-check-label" for="has_request">Has Request</label>
+      </div>
+      <div class="mb-3">
+        <label for="reference" class="form-label">Reference</label>
+        <input type="text" class="form-control" id="reference" name="reference" value="{{ job.reference if job else '' }}">
+      </div>
+      <div class="mb-3">
+        <label for="status" class="form-label">Status</label>
+        <input type="text" class="form-control" id="status" name="status" value="{{ job.status if job else '' }}">
+      </div>
+    </div>
+  </div>
+  <button type="submit" class="btn btn-primary">{{ action }}</button>
+  <a href="{{ url_for('jobs') }}" class="btn btn-secondary">Cancel</a>
+</form>
+{% endblock %} 

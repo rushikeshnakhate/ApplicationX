@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+{% block title %}Jobs - Admin Portal{% endblock %}
+{% block content %}
+<h2>Manage Jobs</h2>
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <form class="d-flex" method="get" action="{{ url_for('jobs') }}">
+    <input class="form-control me-2" type="search" name="search" placeholder="Search jobs..." value="{{ search_query }}">
+    <button class="btn btn-outline-primary" type="submit">Search</button>
+  </form>
+  <a href="{{ url_for('add_job') }}" class="btn btn-success">Create Job</a>
+</div>
+<table class="table table-bordered table-hover">
+  <thead class="table-light">
+    <tr>
+      <th>ID</th>
+      <th>Customer Name</th>
+      <th>Customer Email</th>
+      <th>Customer Mobile</th>
+      <th>Passenger Name</th>
+      <th>Type of Service</th>
+      <th>Date</th>
+      <th>Time</th>
+      <th>Pickup</th>
+      <th>Drop-off</th>
+      <th>Vehicle</th>
+      <th>Driver Contact</th>
+      <th>Payment Status</th>
+      <th>Status</th>
+      <th>Actions</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for job in jobs %}
+    <tr>
+      <td>{{ job.id }}</td>
+      <td>{{ job.customer_name }}</td>
+      <td>{{ job.customer_email }}</td>
+      <td>{{ job.customer_mobile }}</td>
+      <td>{{ job.passenger_name }}</td>
+      <td>{{ job.type_of_service }}</td>
+      <td>{{ job.pickup_date }}</td>
+      <td>{{ job.pickup_time }}</td>
+      <td>{{ job.pickup_location }}</td>
+      <td>{{ job.dropoff_location }}</td>
+      <td>{{ job.vehicle_type }} {{ job.vehicle_number }}</td>
+      <td>{{ job.driver_contact }}</td>
+      <td>{{ job.payment_status }}</td>
+      <td>{{ job.order_status }}</td>
+      <td>
+        <a href="{{ url_for('edit_job', job_id=job.id) }}" class="btn btn-primary btn-sm">Edit</a>
+        <form action="{{ url_for('delete_job', job_id=job.id) }}" method="post" style="display:inline;">
+          <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Delete this job?');">Delete</button>
+        </form>
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %} 

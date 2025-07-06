@@ -11,8 +11,13 @@ repositories {
 }
 
 dependencies {
-    implementation 'com.solacesystems:sol-jms:10.15.0'
+    // Solace PubSub+ Java Messaging API (non-JMS) - try version 1.5.0
+    implementation 'com.solace:solace-messaging-client:1.5.0'
+    
+    // Protobuf runtime
     implementation 'com.google.protobuf:protobuf-java:3.25.1'
+    
+    // JUnit for tests
     testImplementation 'junit:junit:4.13.2'
 }
 
@@ -20,7 +25,23 @@ protobuf {
     protoc {
         artifact = "com.google.protobuf:protoc:3.25.1"
     }
-    generatedFilesBaseDir = "$projectDir/src/generated"
+    // Remove generatedFilesBaseDir to use default output
 }
 
-sourceSets.main.java.srcDirs += "$projectDir/src/generated/main/java" 
+sourceSets {
+    main {
+        proto {
+            srcDirs = ['D:/ApplicationX/fixProcessor/proto']
+        }
+        java {
+            srcDirs += "$buildDir/generated/source/proto/main/java"
+        }
+    }
+}
+
+tasks.withType(JavaCompile) {
+    options.encoding = 'UTF-8'
+}
+
+// Ensure protobuf generation happens before compilation
+compileJava.dependsOn generateProto

@@ -4,11 +4,20 @@ from werkzeug.security import generate_password_hash, check_password_hash
 import os
 import re
 import json
+from datetime import datetime
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'your_secret_key_here'
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.db'
+
+# Configuration for production deployment
+if os.environ.get('DATABASE_URL'):
+    # Production database (PostgreSQL on Heroku)
+    app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL').replace('postgres://', 'postgresql://')
+else:
+    # Development database (SQLite)
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///transport.db'
+
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'your-secret-key-change-this-in-production')
 
 db.init_app(app)
 

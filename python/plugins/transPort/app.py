@@ -3,6 +3,7 @@ from extensions import db
 from werkzeug.security import generate_password_hash, check_password_hash
 import os
 import re
+import json
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'your_secret_key_here'
@@ -12,7 +13,7 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db.init_app(app)
 
 with app.app_context():
-    from models import User, Job, Driver, Agent, Billing, Discount
+    from models import User, Job, Driver, Agent, Billing, Discount, Service, Vehicle
 
     if not os.path.exists('database.db'):
         db.create_all()
@@ -86,8 +87,25 @@ def dashboard():
 def jobs():
     if 'user_id' not in session:
         return redirect(url_for('login'))
+    # Advanced search fields
+    search_fields = [
+        'customer_name', 'customer_email', 'customer_mobile', 'customer_reference',
+        'passenger_name', 'passenger_email', 'passenger_mobile', 'type_of_service',
+        'pickup_date', 'pickup_time', 'pickup_location', 'dropoff_location',
+        'vehicle_type', 'vehicle_number', 'driver_contact', 'payment_mode',
+        'payment_status', 'order_status', 'message', 'remarks', 'reference', 'status'
+    ]
+    filters = []
+    advanced = False
+    for field in search_fields:
+        value = request.args.get(field)
+        if value:
+            advanced = True
+            filters.append(getattr(Job, field).ilike(f'%{value}%'))
     search_query = request.args.get('search', '')
-    if search_query:
+    if advanced:
+        jobs = Job.query.filter(*filters).all()
+    elif search_query:
         jobs = Job.query.filter(
             (Job.customer_name.ilike(f'%{search_query}%')) |
             (Job.customer_email.ilike(f'%{search_query}%')) |
@@ -121,29 +139,46 @@ def jobs():
 def add_job():
     if 'user_id' not in session:
         return redirect(url_for('login'))
+    from models import Agent, Service, Vehicle, Driver
+    agents = Agent.query.filter_by(status='Active').all()
+    services = Service.query.filter_by(status='Active').all()
+    vehicles = Vehicle.query.filter_by(status='Active').all()
+    drivers = Driver.query.all()
     if request.method == 'POST':
+        agent_id = request.form.get('agent_id')
+        agent = Agent.query.get(agent_id) if agent_id else None
+        service_id = request.form.get('service_id')
+        service = Service.query.get(service_id) if service_id else None
+        vehicle_id = request.form.get('vehicle_id')
+        vehicle = Vehicle.query.get(vehicle_id) if vehicle_id else None
+        driver_id = request.form.get('driver_id')
+        driver = Driver.query.get(driver_id) if driver_id else None
+        stops = request.form.getlist('additional_stops[]')
         job = Job(
-            customer_name=request.form.get('customer_name'),
-            customer_email=request.form.get('customer_email'),
-            customer_mobile=request.form.get('customer_mobile'),
+            customer_name=agent.name if agent else request.form.get('customer_name'),
+            customer_email=agent.email if agent else request.form.get('customer_email'),
+            customer_mobile=agent.mobile if agent else request.form.get('customer_mobile'),
+            agent_id=agent.id if agent else None,
+            type_of_service=service.name if service else request.form.get('type_of_service'),
+            vehicle_type=vehicle.type if vehicle else request.form.get('vehicle_type'),
+            vehicle_number=vehicle.number if vehicle else request.form.get('vehicle_number'),
+            driver_contact=driver.name if driver else request.form.get('driver_contact'),
+            driver_id=driver.id if driver else None,
             customer_reference=request.form.get('customer_reference'),
             passenger_name=request.form.get('passenger_name'),
             passenger_email=request.form.get('passenger_email'),
             passenger_mobile=request.form.get('passenger_mobile'),
-            type_of_service=request.form.get('type_of_service'),
             pickup_date=request.form.get('pickup_date'),
             pickup_time=request.form.get('pickup_time'),
             pickup_location=request.form.get('pickup_location'),
             dropoff_location=request.form.get('dropoff_location'),
-            vehicle_type=request.form.get('vehicle_type'),
-            vehicle_number=request.form.get('vehicle_number'),
-            driver_contact=request.form.get('driver_contact'),
             payment_mode=request.form.get('payment_mode'),
             payment_status=request.form.get('payment_status'),
             order_status=request.form.get('order_status'),
             message=request.form.get('message'),
             remarks=request.form.get('remarks'),
             has_additional_stop=bool(request.form.get('has_additional_stop')),
+            additional_stops=json.dumps(stops) if stops else None,
             has_request=bool(request.form.get('has_request')),
             reference=request.form.get('reference'),
             status=request.form.get('status'),
@@ -152,43 +187,61 @@ def add_job():
         db.session.add(job)
         db.session.commit()
         return redirect(url_for('jobs'))
-    return render_template('job_form.html', action='Add', job=None)
+    return render_template('job_form.html', action='Add', job=None, agents=agents, services=services, vehicles=vehicles, drivers=drivers, stops=[])
 
 
 @app.route('/jobs/edit/<int:job_id>', methods=['GET', 'POST'])
 def edit_job(job_id):
     if 'user_id' not in session:
         return redirect(url_for('login'))
+    from models import Agent, Service, Vehicle, Driver
+    agents = Agent.query.filter_by(status='Active').all()
+    services = Service.query.filter_by(status='Active').all()
+    vehicles = Vehicle.query.filter_by(status='Active').all()
+    drivers = Driver.query.all()
     job = Job.query.get_or_404(job_id)
+    stops = json.loads(job.additional_stops) if job.additional_stops else []
     if request.method == 'POST':
-        job.customer_name = request.form.get('customer_name')
-        job.customer_email = request.form.get('customer_email')
-        job.customer_mobile = request.form.get('customer_mobile')
+        agent_id = request.form.get('agent_id')
+        agent = Agent.query.get(agent_id) if agent_id else None
+        service_id = request.form.get('service_id')
+        service = Service.query.get(service_id) if service_id else None
+        vehicle_id = request.form.get('vehicle_id')
+        vehicle = Vehicle.query.get(vehicle_id) if vehicle_id else None
+        driver_id = request.form.get('driver_id')
+        driver = Driver.query.get(driver_id) if driver_id else None
+        stops = request.form.getlist('additional_stops[]')
+        job.customer_name = agent.name if agent else request.form.get('customer_name')
+        job.customer_email = agent.email if agent else request.form.get('customer_email')
+        job.customer_mobile = agent.mobile if agent else request.form.get('customer_mobile')
+        job.agent_id = agent.id if agent else None
+        job.type_of_service = service.name if service else request.form.get('type_of_service')
+        job.vehicle_type = vehicle.type if vehicle else request.form.get('vehicle_type')
+        job.vehicle_number = vehicle.number if vehicle else request.form.get('vehicle_number')
+        job.driver_contact = driver.name if driver else request.form.get('driver_contact')
+        job.driver_id = driver.id if driver else None
         job.customer_reference = request.form.get('customer_reference')
         job.passenger_name = request.form.get('passenger_name')
         job.passenger_email = request.form.get('passenger_email')
         job.passenger_mobile = request.form.get('passenger_mobile')
-        job.type_of_service = request.form.get('type_of_service')
         job.pickup_date = request.form.get('pickup_date')
         job.pickup_time = request.form.get('pickup_time')
         job.pickup_location = request.form.get('pickup_location')
         job.dropoff_location = request.form.get('dropoff_location')
-        job.vehicle_type = request.form.get('vehicle_type')
-        job.vehicle_number = request.form.get('vehicle_number')
-        job.driver_contact = request.form.get('driver_contact')
         job.payment_mode = request.form.get('payment_mode')
         job.payment_status = request.form.get('payment_status')
         job.order_status = request.form.get('order_status')
         job.message = request.form.get('message')
         job.remarks = request.form.get('remarks')
         job.has_additional_stop = bool(request.form.get('has_additional_stop'))
+        job.additional_stops = json.dumps(stops) if stops else None
         job.has_request = bool(request.form.get('has_request'))
         job.reference = request.form.get('reference')
         job.status = request.form.get('status')
         job.date = request.form.get('pickup_date')
         db.session.commit()
         return redirect(url_for('jobs'))
-    return render_template('job_form.html', action='Edit', job=job)
+    return render_template('job_form.html', action='Edit', job=job, agents=agents, services=services, vehicles=vehicles, drivers=drivers, stops=stops)
 
 
 @app.route('/jobs/delete/<int:job_id>', methods=['POST'])
@@ -214,27 +267,56 @@ def smart_add_job():
 
 
 def parse_job_message(message):
-    # Simple regex-based parser for demo; can be improved for real-world messages
+    # Try to parse as field: value pairs
     data = {}
-    # Example: "Customer: John Doe, Email: john@example.com, Mobile: 1234567890, Service: Airport Transfer, Date: 2024-07-01, Time: 10:00, Pickup: Hotel, Drop: Airport, Vehicle: Sedan, Driver: Mike, Payment: Paid, Status: Confirmed"
-    patterns = {
-        'customer_name': r'Customer[:\-]?\s*([\w\s]+)',
-        'customer_email': r'Email[:\-]?\s*([\w\.-]+@[\w\.-]+)',
-        'customer_mobile': r'Mobile[:\-]?\s*(\d+)',
-        'type_of_service': r'Service[:\-]?\s*([\w\s]+)',
-        'pickup_date': r'Date[:\-]?\s*([\d\-/]+)',
-        'pickup_time': r'Time[:\-]?\s*([\d:apmAPM\s]+)',
-        'pickup_location': r'Pickup[:\-]?\s*([\w\s]+)',
-        'dropoff_location': r'Drop[:\-]?\s*([\w\s]+)',
-        'vehicle_type': r'Vehicle[:\-]?\s*([\w\s]+)',
-        'driver_contact': r'Driver[:\-]?\s*([\w\s]+)',
-        'payment_status': r'Payment[:\-]?\s*([\w\s]+)',
-        'order_status': r'Status[:\-]?\s*([\w\s]+)',
-    }
-    for field, pattern in patterns.items():
-        match = re.search(pattern, message, re.IGNORECASE)
-        if match:
-            data[field] = match.group(1).strip()
+    lines = message.splitlines()
+    for line in lines:
+        if ':' in line:
+            field, value = line.split(':', 1)
+            field = field.strip().lower().replace(' ', '_')
+            value = value.strip()
+            # Map common aliases to job fields
+            field_map = {
+                'agent': 'customer_name',
+                'agent_email': 'customer_email',
+                'agent_mobile': 'customer_mobile',
+                'service': 'type_of_service',
+                'vehicle': 'vehicle_type',
+                'vehicle_number': 'vehicle_number',
+                'pickup': 'pickup_location',
+                'drop': 'dropoff_location',
+                'date': 'pickup_date',
+                'time': 'pickup_time',
+                'status': 'status',
+                'passenger': 'passenger_name',
+                'passenger_email': 'passenger_email',
+                'passenger_mobile': 'passenger_mobile',
+                'reference': 'reference',
+                'remarks': 'remarks',
+                'message': 'message',
+            }
+            mapped_field = field_map.get(field, field)
+            data[mapped_field] = value
+    # Fallback to regex for common fields if not found
+    if not data:
+        patterns = {
+            'customer_name': r'Customer[:\-]?\s*([\w\s]+)',
+            'customer_email': r'Email[:\-]?\s*([\w\.-]+@[\w\.-]+)',
+            'customer_mobile': r'Mobile[:\-]?\s*(\d+)',
+            'type_of_service': r'Service[:\-]?\s*([\w\s]+)',
+            'pickup_date': r'Date[:\-]?\s*([\d\-/]+)',
+            'pickup_time': r'Time[:\-]?\s*([\d:apmAPM\s]+)',
+            'pickup_location': r'Pickup[:\-]?\s*([\w\s]+)',
+            'dropoff_location': r'Drop[:\-]?\s*([\w\s]+)',
+            'vehicle_type': r'Vehicle[:\-]?\s*([\w\s]+)',
+            'driver_contact': r'Driver[:\-]?\s*([\w\s]+)',
+            'payment_status': r'Payment[:\-]?\s*([\w\s]+)',
+            'order_status': r'Status[:\-]?\s*([\w\s]+)',
+        }
+        for field, pattern in patterns.items():
+            match = re.search(pattern, message, re.IGNORECASE)
+            if match:
+                data[field] = match.group(1).strip()
     return data
 
 
@@ -243,7 +325,14 @@ def parse_job_message(message):
 def drivers():
     if 'user_id' not in session:
         return redirect(url_for('login'))
-    drivers = Driver.query.all()
+    name = request.args.get('name', '')
+    phone = request.args.get('phone', '')
+    query = Driver.query
+    if name:
+        query = query.filter(Driver.name.ilike(f'%{name}%'))
+    if phone:
+        query = query.filter(Driver.phone.ilike(f'%{phone}%'))
+    drivers = query.all()
     return render_template('drivers.html', drivers=drivers)
 
 
@@ -289,7 +378,23 @@ def delete_driver(driver_id):
 def agents():
     if 'user_id' not in session:
         return redirect(url_for('login'))
-    agents = Agent.query.all()
+    name = request.args.get('name', '')
+    email = request.args.get('email', '')
+    mobile = request.args.get('mobile', '')
+    type_ = request.args.get('type', '')
+    status = request.args.get('status', '')
+    query = Agent.query
+    if name:
+        query = query.filter(Agent.name.ilike(f'%{name}%'))
+    if email:
+        query = query.filter(Agent.email.ilike(f'%{email}%'))
+    if mobile:
+        query = query.filter(Agent.mobile.ilike(f'%{mobile}%'))
+    if type_:
+        query = query.filter(Agent.type.ilike(f'%{type_}%'))
+    if status:
+        query = query.filter(Agent.status == status)
+    agents = query.all()
     return render_template('agents.html', agents=agents)
 
 
@@ -299,11 +404,15 @@ def add_agent():
         return redirect(url_for('login'))
     if request.method == 'POST':
         name = request.form['name']
-        agent = Agent(name=name)
+        email = request.form['email']
+        mobile = request.form['mobile']
+        type_ = request.form['type']
+        status = request.form['status']
+        agent = Agent(name=name, email=email, mobile=mobile, type=type_, status=status)
         db.session.add(agent)
         db.session.commit()
         return redirect(url_for('agents'))
-    return render_template('agent_form.html', action='Add')
+    return render_template('agent_form.html', action='Add', agent=None)
 
 
 @app.route('/agents/edit/<int:agent_id>', methods=['GET', 'POST'])
@@ -313,6 +422,10 @@ def edit_agent(agent_id):
     agent = Agent.query.get_or_404(agent_id)
     if request.method == 'POST':
         agent.name = request.form['name']
+        agent.email = request.form['email']
+        agent.mobile = request.form['mobile']
+        agent.type = request.form['type']
+        agent.status = request.form['status']
         db.session.commit()
         return redirect(url_for('agents'))
     return render_template('agent_form.html', action='Edit', agent=agent)
@@ -421,6 +534,195 @@ def delete_discount(discount_id):
     db.session.commit()
     return redirect(url_for('discounts'))
 
+
+# SERVICES CRUD
+@app.route('/services')
+def services():
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+    name = request.args.get('name', '')
+    status = request.args.get('status', '')
+    query = Service.query
+    if name:
+        query = query.filter(Service.name.ilike(f'%{name}%'))
+    if status:
+        query = query.filter(Service.status == status)
+    services = query.all()
+    return render_template('services.html', services=services)
+
+
+@app.route('/services/add', methods=['GET', 'POST'])
+def add_service():
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+    if request.method == 'POST':
+        name = request.form['name']
+        description = request.form['description']
+        status = request.form['status']
+        service = Service(name=name, description=description, status=status)
+        db.session.add(service)
+        db.session.commit()
+        return redirect(url_for('services'))
+    return render_template('service_form.html', action='Add', service=None)
+
+
+@app.route('/services/edit/<int:service_id>', methods=['GET', 'POST'])
+def edit_service(service_id):
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+    service = Service.query.get_or_404(service_id)
+    if request.method == 'POST':
+        service.name = request.form['name']
+        service.description = request.form['description']
+        service.status = request.form['status']
+        db.session.commit()
+        return redirect(url_for('services'))
+    return render_template('service_form.html', action='Edit', service=service)
+
+
+@app.route('/services/delete/<int:service_id>', methods=['POST'])
+def delete_service(service_id):
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+    service = Service.query.get_or_404(service_id)
+    db.session.delete(service)
+    db.session.commit()
+    return redirect(url_for('services'))
+
+
+# VEHICLES CRUD
+@app.route('/vehicles')
+def vehicles():
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+    name = request.args.get('name', '')
+    number = request.args.get('number', '')
+    type_ = request.args.get('type', '')
+    status = request.args.get('status', '')
+    query = Vehicle.query
+    if name:
+        query = query.filter(Vehicle.name.ilike(f'%{name}%'))
+    if number:
+        query = query.filter(Vehicle.number.ilike(f'%{number}%'))
+    if type_:
+        query = query.filter(Vehicle.type.ilike(f'%{type_}%'))
+    if status:
+        query = query.filter(Vehicle.status == status)
+    vehicles = query.all()
+    return render_template('vehicles.html', vehicles=vehicles)
+
+
+@app.route('/vehicles/add', methods=['GET', 'POST'])
+def add_vehicle():
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+    if request.method == 'POST':
+        name = request.form['name']
+        number = request.form['number']
+        type_ = request.form['type']
+        status = request.form['status']
+        vehicle = Vehicle(name=name, number=number, type=type_, status=status)
+        db.session.add(vehicle)
+        db.session.commit()
+        return redirect(url_for('vehicles'))
+    return render_template('vehicle_form.html', action='Add', vehicle=None)
+
+
+@app.route('/vehicles/edit/<int:vehicle_id>', methods=['GET', 'POST'])
+def edit_vehicle(vehicle_id):
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+    vehicle = Vehicle.query.get_or_404(vehicle_id)
+    if request.method == 'POST':
+        vehicle.name = request.form['name']
+        vehicle.number = request.form['number']
+        vehicle.type = request.form['type']
+        vehicle.status = request.form['status']
+        db.session.commit()
+        return redirect(url_for('vehicles'))
+    return render_template('vehicle_form.html', action='Edit', vehicle=vehicle)
+
+
+@app.route('/vehicles/delete/<int:vehicle_id>', methods=['POST'])
+def delete_vehicle(vehicle_id):
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+    vehicle = Vehicle.query.get_or_404(vehicle_id)
+    db.session.delete(vehicle)
+    db.session.commit()
+    return redirect(url_for('vehicles'))
+
+
+@app.route('/api/quick_add/agent', methods=['POST'])
+def api_quick_add_agent():
+    data = request.json
+    from models import Agent
+    agent = Agent(
+        name=data.get('name'),
+        email=data.get('email'),
+        mobile=data.get('mobile'),
+        type=data.get('type'),
+        status=data.get('status', 'Active')
+    )
+    db.session.add(agent)
+    db.session.commit()
+    return jsonify({
+        'id': agent.id,
+        'name': agent.name,
+        'email': agent.email,
+        'mobile': agent.mobile
+    })
+
+@app.route('/api/quick_add/service', methods=['POST'])
+def api_quick_add_service():
+    data = request.json
+    from models import Service
+    service = Service(
+        name=data.get('name'),
+        description=data.get('description'),
+        status=data.get('status', 'Active')
+    )
+    db.session.add(service)
+    db.session.commit()
+    return jsonify({
+        'id': service.id,
+        'name': service.name
+    })
+
+@app.route('/api/quick_add/vehicle', methods=['POST'])
+def api_quick_add_vehicle():
+    data = request.json
+    from models import Vehicle
+    vehicle = Vehicle(
+        name=data.get('name'),
+        number=data.get('number'),
+        type=data.get('type'),
+        status=data.get('status', 'Active')
+    )
+    db.session.add(vehicle)
+    db.session.commit()
+    return jsonify({
+        'id': vehicle.id,
+        'name': vehicle.name,
+        'number': vehicle.number,
+        'type': vehicle.type
+    })
+
+@app.route('/api/quick_add/driver', methods=['POST'])
+def api_quick_add_driver():
+    data = request.json
+    from models import Driver
+    driver = Driver(
+        name=data.get('name'),
+        phone=data.get('phone')
+    )
+    db.session.add(driver)
+    db.session.commit()
+    return jsonify({
+        'id': driver.id,
+        'name': driver.name,
+        'phone': driver.phone
+    })
 
 if __name__ == '__main__':
     app.run(debug=True)

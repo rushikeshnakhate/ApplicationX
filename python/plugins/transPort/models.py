@@ -15,6 +15,21 @@ class User(db.Model):
         return check_password_hash(self.password_hash, password)
 
 
+class Service(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(128), unique=True, nullable=False)
+    description = db.Column(db.Text)
+    status = db.Column(db.String(32), default='Active')
+
+
+class Vehicle(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(128), nullable=False)
+    number = db.Column(db.String(64), unique=True, nullable=False)
+    type = db.Column(db.String(64))
+    status = db.Column(db.String(32), default='Active')
+
+
 class Job(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     customer_name = db.Column(db.String(128))
@@ -38,9 +53,10 @@ class Job(db.Model):
     message = db.Column(db.Text)
     remarks = db.Column(db.Text)
     has_additional_stop = db.Column(db.Boolean, default=False)
+    additional_stops = db.Column(db.Text)
     has_request = db.Column(db.Boolean, default=False)
     reference = db.Column(db.String(128))
-    status = db.Column(db.String(64))
+    status = db.Column(db.String(32), default='Inactive')
     date = db.Column(db.String(64))
     driver_id = db.Column(db.Integer, db.ForeignKey('driver.id'))
     agent_id = db.Column(db.Integer, db.ForeignKey('agent.id'))
@@ -56,6 +72,10 @@ class Driver(db.Model):
 class Agent(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(128))
+    email = db.Column(db.String(128))
+    mobile = db.Column(db.String(32))
+    type = db.Column(db.String(64))
+    status = db.Column(db.String(32), default='Active')
     jobs = db.relationship('Job', backref='agent', lazy=True)
 
 

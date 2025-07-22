@@ -1,0 +1,50 @@
+plugins {
+    id 'java'
+    id 'com.google.protobuf' version '0.9.4'
+    id 'application'
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation 'com.google.protobuf:protobuf-java:3.25.0'
+}
+
+application {
+    mainClass = 'com.applicationsx.protobuf.Main'
+}
+protobuf {
+    protoc {
+        artifact = 'com.google.protobuf:protoc:3.25.0'
+    }
+
+    generateProtoTasks {
+        all().each { task ->
+            task.builtins {
+                java {}  // Required for Java generation
+            }
+        }
+    }
+}
+
+sourceSets {
+    main {
+        proto {
+            srcDir 'src/main/proto'
+        }
+        java {
+            srcDirs += 'build/generated/source/proto/main/java'
+        }
+    }
+}
+
+tasks.named("processResources") {
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+}
+
+// Ensure compileJava always depends on proto generation
+tasks.named('compileJava') {
+    dependsOn tasks.named('generateProto')
+}

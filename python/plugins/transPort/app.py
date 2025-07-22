@@ -733,5 +733,207 @@ def api_quick_add_driver():
         'phone': driver.phone
     })
 
+@app.route('/ask_agent', methods=['POST'])
+def ask_agent():
+    if 'user_id' not in session:
+        return jsonify({'error': 'Unauthorized'}), 401
+    data = request.get_json()
+    question = data.get('question', '').lower()
+    format_ = data.get('format', 'table')  # default to table
+    show_more = data.get('show_more', False)
+    all_columns = True  # Always show all columns for Jobs
+    from models import Job, Driver, Agent, Billing, Discount, Service, Vehicle
+    answer = "Sorry, I couldn't understand your question. Please try another one."
+    html_table = None
+    json_data = None
+    csv_data = None
+    limit = 5 if not show_more else 20
+    formats = []
+    raw_data = None
+    headers = None
+
+    def to_csv(rows, headers):
+        import io, csv
+        output = io.StringIO()
+        writer = csv.writer(output)
+        writer.writerow(headers)
+        for row in rows:
+            writer.writerow(row)
+        return output.getvalue()
+
+    # Helper to detect format in question
+    if 'json' in question:
+        format_ = 'json'
+    elif 'csv' in question:
+        format_ = 'csv'
+    elif 'table' in question:
+        format_ = 'table'
+
+    # Jobs
+    if 'job' in question or 'booking' in question:
+        jobs = Job.query.limit(limit).all()
+        if jobs:
+            headers = [c.name for c in Job.__table__.columns]
+            rows = [[getattr(j, h) for h in headers] for j in jobs]
+            json_data = [dict(zip(headers, row)) for row in rows]
+            csv_data = to_csv(rows, headers)
+            raw_data = rows
+            if format_ == 'json':
+                answer = f"Here are all job data (JSON):<br><pre>{json.dumps(json_data, indent=2)}</pre>"
+            elif format_ == 'csv':
+                answer = f"Here are all job data (CSV):<br><pre>{csv_data}</pre>"
+            else:
+                html_table = '<table class="table table-sm"><thead><tr>' + ''.join(f'<th>{h}</th>' for h in headers) + '</tr></thead><tbody>'
+                for row in rows:
+                    html_table += '<tr>' + ''.join(f'<td>{cell}</td>' for cell in row) + '</tr>'
+                html_table += '</tbody></table>'
+                answer = f"Here are all job data:" + html_table
+            formats = ['table', 'json', 'csv']
+            if not show_more and Job.query.count() > limit:
+                formats.append('show_more')
+            # all_columns always shown, so don't add button
+        else:
+            answer = "No jobs found."
+        return jsonify({'answer': answer, 'formats': formats, 'format': format_, 'headers': headers, 'raw_data': raw_data})
+    # Drivers
+    elif 'driver' in question:
+        drivers = Driver.query.limit(limit).all()
+        if drivers:
+            headers = ['ID', 'Name', 'Phone']
+            rows = [[d.id, d.name, d.phone] for d in drivers]
+            json_data = [dict(zip(headers, row)) for row in rows]
+            csv_data = to_csv(rows, headers)
+            if format_ == 'json':
+                answer = f"Here are some drivers (JSON):<br><pre>{json.dumps(json_data, indent=2)}</pre>"
+            elif format_ == 'csv':
+                answer = f"Here are some drivers (CSV):<br><pre>{csv_data}</pre>"
+            else:
+                html_table = '<table class="table table-sm"><tr>' + ''.join(f'<th>{h}</th>' for h in headers) + '</tr>'
+                for row in rows:
+                    html_table += '<tr>' + ''.join(f'<td>{cell}</td>' for cell in row) + '</tr>'
+                html_table += '</table>'
+                answer = f"Here are some drivers:" + html_table
+            formats = ['table', 'json', 'csv']
+            if not show_more and Driver.query.count() > limit:
+                formats.append('show_more')
+        else:
+            answer = "No drivers found."
+    # Agents
+    elif 'agent' in question:
+        agents = Agent.query.limit(limit).all()
+        if agents:
+            headers = ['ID', 'Name', 'Email']
+            rows = [[a.id, a.name, a.email] for a in agents]
+            json_data = [dict(zip(headers, row)) for row in rows]
+            csv_data = to_csv(rows, headers)
+            if format_ == 'json':
+                answer = f"Here are some agents (JSON):<br><pre>{json.dumps(json_data, indent=2)}</pre>"
+            elif format_ == 'csv':
+                answer = f"Here are some agents (CSV):<br><pre>{csv_data}</pre>"
+            else:
+                html_table = '<table class="table table-sm"><tr>' + ''.join(f'<th>{h}</th>' for h in headers) + '</tr>'
+                for row in rows:
+                    html_table += '<tr>' + ''.join(f'<td>{cell}</td>' for cell in row) + '</tr>'
+                html_table += '</table>'
+                answer = f"Here are some agents:" + html_table
+            formats = ['table', 'json', 'csv']
+            if not show_more and Agent.query.count() > limit:
+                formats.append('show_more')
+        else:
+            answer = "No agents found."
+    # Vehicles
+    elif 'vehicle' in question:
+        vehicles = Vehicle.query.limit(limit).all()
+        if vehicles:
+            headers = ['ID', 'Name', 'Number', 'Type']
+            rows = [[v.id, v.name, v.number, v.type] for v in vehicles]
+            json_data = [dict(zip(headers, row)) for row in rows]
+            csv_data = to_csv(rows, headers)
+            if format_ == 'json':
+                answer = f"Here are some vehicles (JSON):<br><pre>{json.dumps(json_data, indent=2)}</pre>"
+            elif format_ == 'csv':
+                answer = f"Here are some vehicles (CSV):<br><pre>{csv_data}</pre>"
+            else:
+                html_table = '<table class="table table-sm"><tr>' + ''.join(f'<th>{h}</th>' for h in headers) + '</tr>'
+                for row in rows:
+                    html_table += '<tr>' + ''.join(f'<td>{cell}</td>' for cell in row) + '</tr>'
+                html_table += '</table>'
+                answer = f"Here are some vehicles:" + html_table
+            formats = ['table', 'json', 'csv']
+            if not show_more and Vehicle.query.count() > limit:
+                formats.append('show_more')
+        else:
+            answer = "No vehicles found."
+    # Billing
+    elif 'billing' in question or 'invoice' in question:
+        billings = Billing.query.limit(limit).all()
+        if billings:
+            headers = ['ID', 'Job ID', 'Amount']
+            rows = [[b.id, b.job_id, b.amount] for b in billings]
+            json_data = [dict(zip(headers, row)) for row in rows]
+            csv_data = to_csv(rows, headers)
+            if format_ == 'json':
+                answer = f"Here are some billing records (JSON):<br><pre>{json.dumps(json_data, indent=2)}</pre>"
+            elif format_ == 'csv':
+                answer = f"Here are some billing records (CSV):<br><pre>{csv_data}</pre>"
+            else:
+                html_table = '<table class="table table-sm"><tr>' + ''.join(f'<th>{h}</th>' for h in headers) + '</tr>'
+                for row in rows:
+                    html_table += '<tr>' + ''.join(f'<td>{cell}</td>' for cell in row) + '</tr>'
+                html_table += '</table>'
+                answer = f"Here are some billing records:" + html_table
+            formats = ['table', 'json', 'csv']
+            if not show_more and Billing.query.count() > limit:
+                formats.append('show_more')
+        else:
+            answer = "No billing records found."
+    # Discounts
+    elif 'discount' in question:
+        discounts = Discount.query.limit(limit).all()
+        if discounts:
+            headers = ['ID', 'Code', 'Percent']
+            rows = [[d.id, d.code, d.percent] for d in discounts]
+            json_data = [dict(zip(headers, row)) for row in rows]
+            csv_data = to_csv(rows, headers)
+            if format_ == 'json':
+                answer = f"Here are some discounts (JSON):<br><pre>{json.dumps(json_data, indent=2)}</pre>"
+            elif format_ == 'csv':
+                answer = f"Here are some discounts (CSV):<br><pre>{csv_data}</pre>"
+            else:
+                html_table = '<table class="table table-sm"><tr>' + ''.join(f'<th>{h}</th>' for h in headers) + '</tr>'
+                for row in rows:
+                    html_table += '<tr>' + ''.join(f'<td>{cell}</td>' for cell in row) + '</tr>'
+                html_table += '</table>'
+                answer = f"Here are some discounts:" + html_table
+            formats = ['table', 'json', 'csv']
+            if not show_more and Discount.query.count() > limit:
+                formats.append('show_more')
+        else:
+            answer = "No discounts found."
+    # Services
+    elif 'service' in question:
+        services = Service.query.limit(limit).all()
+        if services:
+            headers = ['ID', 'Name', 'Description']
+            rows = [[s.id, s.name, s.description] for s in services]
+            json_data = [dict(zip(headers, row)) for row in rows]
+            csv_data = to_csv(rows, headers)
+            if format_ == 'json':
+                answer = f"Here are some services (JSON):<br><pre>{json.dumps(json_data, indent=2)}</pre>"
+            elif format_ == 'csv':
+                answer = f"Here are some services (CSV):<br><pre>{csv_data}</pre>"
+            else:
+                html_table = '<table class="table table-sm"><tr>' + ''.join(f'<th>{h}</th>' for h in headers) + '</tr>'
+                for row in rows:
+                    html_table += '<tr>' + ''.join(f'<td>{cell}</td>' for cell in row) + '</tr>'
+                html_table += '</table>'
+                answer = f"Here are some services:" + html_table
+            formats = ['table', 'json', 'csv']
+            if not show_more and Service.query.count() > limit:
+                formats.append('show_more')
+        else:
+            answer = "No services found."
+    return jsonify({'answer': answer, 'formats': formats, 'format': format_})
+
 if __name__ == '__main__':
     app.run(debug=True)

@@ -10,6 +10,7 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </head>
 <body>
+{% if session.get('user_id') %}
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
   <div class="container-fluid">
     <a class="navbar-brand" href="{{ url_for('dashboard') }}">Admin Portal</a>
@@ -32,6 +33,7 @@
     </div>
   </div>
 </nav>
+{% endif %}
 <div class="container mt-4">
     {% with messages = get_flashed_messages() %}
       {% if messages %}
@@ -44,5 +46,346 @@
     {% endwith %}
     {% block content %}{% endblock %}
 </div>
+{% if session.get('user_id') %}
+<!-- Chat Agent Widget -->
+<style>
+#chat-agent-widget { position: fixed; bottom: 24px; right: 24px; z-index: 9999; width: 350px; max-width: 90vw; font-family: inherit; transition: width 0.2s, height 0.2s, left 0.2s, right 0.2s, top 0.2s, bottom 0.2s; }
+#chat-agent-widget.ca-wide { position: fixed; left: 50%; top: 50%; right: auto; bottom: auto; transform: translate(-50%, -50%); width: 700px; height: 600px; max-width: 98vw; max-height: 98vh; }
+#chat-agent-widget.ca-full { position: fixed; left: 0; top: 0; right: 0; bottom: 0; width: 100vw !important; height: 100vh !important; max-width: none; max-height: none; border-radius: 0 !important; z-index: 10000; }
+#chat-agent-widget.ca-full #chat-agent-body { max-height: calc(100vh - 60px); }
+#chat-agent-widget.ca-full #chat-agent-messages { max-height: 60vh; }
+#chat-agent-resize { position: absolute; left: 0; top: 0; width: 12px; height: 100%; cursor: ew-resize; z-index: 10000; }
+#chat-agent-header { background: #343a40; color: #fff; padding: 12px; border-radius: 12px 12px 0 0; cursor: pointer; font-weight: bold; display: flex; align-items: center; justify-content: space-between; }
+#chat-agent-pop, #chat-agent-full { background: none; border: none; color: #fff; font-size: 1.2em; margin-left: 8px; cursor: pointer; }
+#chat-agent-font { margin-left: 8px; font-size: 1em; border-radius: 6px; border: 1px solid #ccc; padding: 2px 6px; }
+#chat-agent-body { display: none; background: #fff; border: 1px solid #343a40; border-top: none; border-radius: 0 0 12px 12px; max-height: 500px; overflow-y: auto; box-shadow: 0 4px 24px rgba(0,0,0,0.15); }
+#chat-agent-body.active { display: block; }
+#chat-agent-messages { padding: 12px; min-height: 120px; max-height: 250px; overflow-y: auto; }
+#chat-agent-input-row { display: flex; border-top: 1px solid #eee; }
+#chat-agent-input { flex: 1; border: none; padding: 8px; }
+#chat-agent-send { background: #343a40; color: #fff; border: none; padding: 8px 16px; cursor: pointer; }
+#chat-agent-examples { padding: 8px; border-bottom: 1px solid #eee; }
+#chat-agent-examples .entity-group { margin-bottom: 8px; }
+#chat-agent-examples .entity-title { font-weight: bold; font-size: 0.95em; margin-bottom: 2px; }
+#chat-agent-examples button { margin: 2px 2px 2px 0; font-size: 0.92em; padding: 2px 8px; border-radius: 8px; border: 1px solid #ccc; background: #f8f9fa; cursor: pointer; }
+#chat-agent-examples button:hover { background: #e2e6ea; }
+.ca-bubble { display: flex; align-items: flex-end; margin: 8px 0; }
+.ca-bubble.agent { justify-content: flex-start; }
+.ca-bubble.user { justify-content: flex-end; }
+.ca-avatar { width: 32px; height: 32px; border-radius: 50%; background: #eee; display: flex; align-items: center; justify-content: center; font-size: 1.2em; margin: 0 8px; }
+.ca-msg { max-width: 70%; padding: 8px 12px; border-radius: 16px; font-size: 0.98em; line-height: 1.5; transition: background 0.3s; }
+.ca-bubble.agent .ca-msg { background: #f1f3f4; color: #222; border-bottom-left-radius: 4px; }
+.ca-bubble.user .ca-msg { background: #343a40; color: #fff; border-bottom-right-radius: 4px; }
+.ca-msg.ca-highlight { background: #ffe066 !important; animation: ca-pop 0.7s; }
+@keyframes ca-pop { 0% { background: #ffe066; } 100% { background: #f1f3f4; } }
+.ca-typing { font-style: italic; color: #888; margin-left: 40px; }
+.ca-format-btns { margin: 4px 0 0 40px; display: flex; flex-wrap: wrap; align-items: center; }
+.ca-format-btns button { margin-right: 6px; font-size: 0.92em; padding: 2px 8px; border-radius: 8px; border: 1px solid #ccc; background: #e9ecef; cursor: pointer; }
+.ca-format-btns button.active, .ca-format-btns button:focus { background: #343a40; color: #fff; }
+.ca-format-btns .ca-all-cols { background: #51cf66; color: #222; border: 1px solid #51cf66; }
+.ca-format-btns .ca-save { background: #228be6; color: #fff; border: 1px solid #228be6; }
+.ca-table-filter { margin: 0 0 8px 0; padding: 2px 8px; border-radius: 6px; border: 1px solid #ccc; width: 60%; font-size: 0.98em; }
+.ca-table-scroll { overflow-x: auto; width: 100%; }
+.ca-table-scroll table { min-width: 900px; border-collapse: separate; border-spacing: 0; }
+.ca-table-scroll th, .ca-table-scroll td { border: 1px solid #dee2e6; padding: 4px 8px; }
+.ca-table-scroll th { background: #f8f9fa; position: sticky; top: 0; z-index: 1; }
+.ca-table-scroll tr:nth-child(even) { background: #f1f3f4; }
+@media (max-width: 600px) {
+  #chat-agent-widget, #chat-agent-widget.ca-wide, #chat-agent-widget.ca-full { width: 98vw !important; left: 1vw !important; right: 1vw !important; min-width: 0; }
+  .ca-msg { max-width: 98vw; }
+  .ca-table-scroll table { min-width: 600px; }
+}
+</style>
+<div id="chat-agent-widget">
+  <div id="chat-agent-resize"></div>
+  <div id="chat-agent-header">
+    <span>💬 Ask Data Agent</span>
+    <select id="chat-agent-font">
+      <option value="inherit">Default</option>
+      <option value="Arial, sans-serif">Arial</option>
+      <option value="Georgia, serif">Georgia</option>
+      <option value="Courier New, monospace">Courier New</option>
+      <option value="Tahoma, Geneva, sans-serif">Tahoma</option>
+      <option value="Verdana, Geneva, sans-serif">Verdana</option>
+    </select>
+    <button id="chat-agent-pop" title="Pop in/out">⛶</button>
+    <button id="chat-agent-full" title="Full screen">🗖</button>
+  </div>
+  <div id="chat-agent-body">
+    <div id="chat-agent-examples">
+      <div class="entity-group">
+        <div class="entity-title">Jobs</div>
+        <button>Show recent jobs</button>
+        <button>How many jobs are active?</button>
+        <button>List jobs for today</button>
+        <button>Show jobs by customer name</button>
+      </div>
+      <div class="entity-group">
+        <div class="entity-title">Drivers</div>
+        <button>Show all drivers</button>
+        <button>Which drivers are available?</button>
+        <button>Driver contact details</button>
+      </div>
+      <div class="entity-group">
+        <div class="entity-title">Agents</div>
+        <button>Show all agents</button>
+        <button>Active agents</button>
+        <button>Agent contact info</button>
+      </div>
+      <div class="entity-group">
+        <div class="entity-title">Vehicles</div>
+        <button>Show all vehicles</button>
+        <button>Available vehicles</button>
+        <button>Vehicle types</button>
+      </div>
+      <div class="entity-group">
+        <div class="entity-title">Billing</div>
+        <button>Show billing records</button>
+        <button>Recent invoices</button>
+      </div>
+      <div class="entity-group">
+        <div class="entity-title">Discounts</div>
+        <button>Show discounts</button>
+        <button>Active discount codes</button>
+      </div>
+      <div class="entity-group">
+        <div class="entity-title">Services</div>
+        <button>Show all services</button>
+        <button>Active services</button>
+      </div>
+    </div>
+    <div id="chat-agent-messages"></div>
+    <div id="chat-agent-input-row">
+      <input id="chat-agent-input" type="text" placeholder="Type your question..." autocomplete="off" />
+      <button id="chat-agent-send">Send</button>
+    </div>
+  </div>
+</div>
+<script>
+const chatWidget = document.getElementById('chat-agent-widget');
+const chatHeader = document.getElementById('chat-agent-header');
+const chatBody = document.getElementById('chat-agent-body');
+const chatMessages = document.getElementById('chat-agent-messages');
+const chatInput = document.getElementById('chat-agent-input');
+const chatSend = document.getElementById('chat-agent-send');
+const exampleButtons = document.querySelectorAll('#chat-agent-examples button');
+const chatPop = document.getElementById('chat-agent-pop');
+const chatFull = document.getElementById('chat-agent-full');
+const chatResize = document.getElementById('chat-agent-resize');
+const chatFont = document.getElementById('chat-agent-font');
+let lastAgentFormats = [];
+let lastAgentQuestion = '';
+let lastAgentFormat = 'table';
+let lastAgentShowMore = false;
+let lastAgentAllCols = false;
+let lastAgentTableData = null;
+let lastAgentTableHeaders = null;
+let isResizing = false;
+let startX, startWidth;
+
+chatHeader.onclick = (e) => {
+  if (e.target === chatPop || e.target === chatFull || e.target === chatFont) return;
+  chatBody.classList.toggle('active');
+};
+chatPop.onclick = () => {
+  chatWidget.classList.toggle('ca-wide');
+  chatWidget.classList.remove('ca-full');
+};
+chatFull.onclick = () => {
+  chatWidget.classList.toggle('ca-full');
+  chatWidget.classList.remove('ca-wide');
+};
+chatFont.onchange = () => {
+  chatWidget.style.fontFamily = chatFont.value;
+};
+chatResize.onmousedown = function(e) {
+  isResizing = true;
+  startX = e.clientX;
+  startWidth = chatWidget.offsetWidth;
+  document.body.style.userSelect = 'none';
+};
+document.onmousemove = function(e) {
+  if (!isResizing) return;
+  let newWidth = startWidth + (e.clientX - startX);
+  if (newWidth < 300) newWidth = 300;
+  if (newWidth > 1200) newWidth = 1200;
+  chatWidget.style.width = newWidth + 'px';
+};
+document.onmouseup = function() {
+  isResizing = false;
+  document.body.style.userSelect = '';
+};
+
+function downloadCSV(headers, rows, filename = 'data.csv') {
+  let csv = '';
+  csv += headers.join(',') + '\n';
+  rows.forEach(row => {
+    csv += row.map(cell => '"' + (cell !== null ? String(cell).replace(/"/g, '""') : '') + '"').join(',') + '\n';
+  });
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(url); }, 100);
+}
+
+function filterTable(table, filter) {
+  const rows = table.querySelectorAll('tbody tr');
+  rows.forEach(row => {
+    const text = row.textContent.toLowerCase();
+    row.style.display = text.includes(filter.toLowerCase()) ? '' : 'none';
+  });
+}
+
+function appendBubble(text, from, formats = [], format = 'table', showMore = false, allCols = false, headers = null, rawData = null) {
+  const bubble = document.createElement('div');
+  bubble.className = 'ca-bubble ' + from;
+  const avatar = document.createElement('div');
+  avatar.className = 'ca-avatar';
+  avatar.innerHTML = from === 'user' ? '🧑' : '🤖';
+  const msg = document.createElement('div');
+  msg.className = 'ca-msg';
+  msg.innerHTML = text;
+  if (from === 'agent') {
+    msg.classList.add('ca-highlight');
+    setTimeout(() => msg.classList.remove('ca-highlight'), 700);
+  }
+  bubble.appendChild(from === 'user' ? msg : avatar);
+  bubble.appendChild(from === 'user' ? avatar : msg);
+  chatMessages.appendChild(bubble);
+  // Table filter, select, and save for agent job table output
+  if (from === 'agent' && format === 'table' && msg.querySelector('table')) {
+    const table = msg.querySelector('table');
+    // Wrap table in scrollable div for wide tables
+    const scrollDiv = document.createElement('div');
+    scrollDiv.className = 'ca-table-scroll';
+    table.parentNode.insertBefore(scrollDiv, table);
+    scrollDiv.appendChild(table);
+    // If backend provided headers/rawData, rebuild table with checkboxes
+    if (headers && rawData && headers.length && rawData.length) {
+      let thead = '<tr><th><input type="checkbox" id="ca-select-all"></th>' + headers.map(h => `<th>${h}</th>`).join('') + '</tr>';
+      let tbody = rawData.map((row, i) => `<tr><td><input type="checkbox" class="ca-row-select"></td>` + row.map(cell => `<td>${cell}</td>`).join('') + '</tr>').join('');
+      table.innerHTML = `<thead>${thead}</thead><tbody>${tbody}</tbody>`;
+    }
+    // Save last table data for download
+    lastAgentTableData = [];
+    lastAgentTableHeaders = [];
+    // Extract headers
+    const ths = table.querySelectorAll('th');
+    ths.forEach(th => lastAgentTableHeaders.push(th.textContent));
+    // Extract rows
+    const trs = table.querySelectorAll('tbody tr');
+    trs.forEach(tr => {
+      const tds = tr.querySelectorAll('td');
+      lastAgentTableData.push(Array.from(tds).slice(1).map(td => td.textContent)); // skip checkbox col
+    });
+    // Add filter if many rows
+    if (trs.length > 10) {
+      const filterInput = document.createElement('input');
+      filterInput.type = 'text';
+      filterInput.placeholder = 'Filter rows...';
+      filterInput.className = 'ca-table-filter';
+      filterInput.oninput = () => filterTable(table, filterInput.value);
+      scrollDiv.insertBefore(filterInput, table);
+    }
+    // Add save button
+    const saveBtn = document.createElement('button');
+    saveBtn.textContent = 'Save Data';
+    saveBtn.className = 'ca-save';
+    saveBtn.onclick = () => {
+      // Save only selected rows if any, else all visible rows
+      const selectedRows = Array.from(table.querySelectorAll('tbody tr')).filter(tr => tr.querySelector('.ca-row-select') && tr.querySelector('.ca-row-select').checked && tr.style.display !== 'none');
+      let rowsToSave = [];
+      if (selectedRows.length > 0) {
+        rowsToSave = selectedRows.map(tr => Array.from(tr.querySelectorAll('td')).slice(1).map(td => td.textContent));
+      } else {
+        // Save all visible rows
+        rowsToSave = Array.from(table.querySelectorAll('tbody tr')).filter(tr => tr.style.display !== 'none').map(tr => Array.from(tr.querySelectorAll('td')).slice(1).map(td => td.textContent));
+      }
+      downloadCSV(lastAgentTableHeaders.slice(1), rowsToSave);
+    };
+    scrollDiv.appendChild(saveBtn);
+    // Select all checkbox
+    if (table.querySelector('#ca-select-all')) {
+      table.querySelector('#ca-select-all').onchange = function() {
+        const checked = this.checked;
+        table.querySelectorAll('.ca-row-select').forEach(cb => { cb.checked = checked; });
+      };
+    }
+  }
+  // Format buttons for agent
+  if (from === 'agent' && formats && formats.length > 1) {
+    const btns = document.createElement('div');
+    btns.className = 'ca-format-btns';
+    formats.forEach(f => {
+      if (f === 'show_more' || f === 'all_columns') return;
+      const b = document.createElement('button');
+      b.textContent = f === 'table' ? 'Table' : f.toUpperCase();
+      b.className = (f === format ? 'active' : '');
+      b.onclick = () => sendQuestion(lastAgentQuestion, f, false, allCols);
+      btns.appendChild(b);
+    });
+    if (formats.includes('show_more')) {
+      const moreBtn = document.createElement('button');
+      moreBtn.textContent = 'Show More';
+      moreBtn.onclick = () => sendQuestion(lastAgentQuestion, lastAgentFormat, true, allCols);
+      btns.appendChild(moreBtn);
+    }
+    chatMessages.appendChild(btns);
+  }
+  chatMessages.scrollTop = chatMessages.scrollHeight;
+}
+
+function showTyping() {
+  const typing = document.createElement('div');
+  typing.className = 'ca-typing';
+  typing.id = 'ca-typing-indicator';
+  typing.textContent = 'Agent is typing...';
+  chatMessages.appendChild(typing);
+  chatMessages.scrollTop = chatMessages.scrollHeight;
+}
+function removeTyping() {
+  const typing = document.getElementById('ca-typing-indicator');
+  if (typing) typing.remove();
+}
+
+function sendQuestion(q, format = 'table', showMore = false, allCols = false) {
+  if (!q.trim()) return;
+  appendBubble(q, 'user');
+  lastAgentQuestion = q;
+  lastAgentFormat = format;
+  lastAgentShowMore = showMore;
+  lastAgentAllCols = allCols;
+  showTyping();
+  chatInput.value = '';
+  fetch('/ask_agent', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ question: q, format: format, show_more: showMore, all_columns: allCols })
+  })
+  .then(r => r.json())
+  .then(data => {
+    removeTyping();
+    lastAgentFormats = data.formats || [];
+    appendBubble(data.answer, 'agent', lastAgentFormats, data.format, showMore, allCols, data.headers, data.raw_data);
+  })
+  .catch(() => {
+    removeTyping();
+    appendBubble('Sorry, there was an error contacting the agent.', 'agent');
+  });
+}
+
+chatSend.onclick = () => sendQuestion(chatInput.value);
+chatInput.addEventListener('keydown', e => {
+  if (e.key === 'Enter') sendQuestion(chatInput.value);
+});
+exampleButtons.forEach(btn => {
+  btn.onclick = () => sendQuestion(btn.textContent);
+});
+</script>
+{% endif %}
 </body>
 </html> 

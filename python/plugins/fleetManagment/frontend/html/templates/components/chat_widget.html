@@ -1,0 +1,777 @@
+<!-- Chat Widget -->
+<div class="chat-widget" id="chatWidget">
+  <div class="chat-header" id="chatHeader">
+    <div class="d-flex align-items-center">
+      <i class="fas fa-robot me-2"></i>
+      <span>Fleet Assistant</span>
+    </div>
+    <div class="d-flex align-items-center">
+      <button class="btn btn-sm btn-success me-2" id="maximizeChat" title="Full Screen">
+        <i class="fas fa-expand-arrows-alt"></i>
+      </button>
+      <button class="btn btn-sm btn-warning me-2" id="dockChat" title="Dock/Undock">
+        <i class="fas fa-thumbtack"></i>
+      </button>
+      <button class="btn btn-sm btn-danger" id="minimizeChat" title="Minimize">
+        <i class="fas fa-window-minimize"></i>
+      </button>
+    </div>
+  </div>
+  
+  <div class="chat-body" id="chatBody">
+    <div class="chat-messages" id="chatMessages">
+      <div class="message bot-message">
+        <div class="message-avatar">
+          <i class="fas fa-robot"></i>
+        </div>
+        <div class="message-content">
+          <p>Hello! I'm your Fleet Management Assistant. How can I help you today?</p>
+        </div>
+      </div>
+    </div>
+    
+    <div class="quick-questions">
+      <div class="question-group">
+        <h6 class="question-category">📋 Jobs Data</h6>
+        <div class="question-buttons">
+          <button class="btn btn-sm btn-outline-primary quick-question" data-question="Get me all active jobs">
+            <i class="fas fa-briefcase me-1"></i>All active jobs
+          </button>
+          <button class="btn btn-sm btn-outline-primary quick-question" data-question="Show jobs for today">
+            <i class="fas fa-calendar-day me-1"></i>Today's jobs
+          </button>
+          <button class="btn btn-sm btn-outline-primary quick-question" data-question="Get completed jobs this week">
+            <i class="fas fa-calendar-week me-1"></i>Completed this week
+          </button>
+          <button class="btn btn-sm btn-outline-primary quick-question" data-question="Show pending jobs">
+            <i class="fas fa-clock me-1"></i>Pending jobs
+          </button>
+          <button class="btn btn-sm btn-outline-primary quick-question" data-question="Get jobs by payment status">
+            <i class="fas fa-credit-card me-1"></i>Jobs by payment
+          </button>
+          <button class="btn btn-sm btn-outline-primary quick-question" data-question="Show jobs by vehicle type">
+            <i class="fas fa-truck me-1"></i>Jobs by vehicle
+          </button>
+        </div>
+      </div>
+      
+      <div class="question-group">
+        <h6 class="question-category">👥 Drivers Data</h6>
+        <div class="question-buttons">
+          <button class="btn btn-sm btn-outline-primary quick-question" data-question="Get me all drivers">
+            <i class="fas fa-users me-1"></i>All drivers
+          </button>
+          <button class="btn btn-sm btn-outline-primary quick-question" data-question="Show driver assignments">
+            <i class="fas fa-user-tie me-1"></i>Driver assignments
+          </button>
+          <button class="btn btn-sm btn-outline-primary quick-question" data-question="Get drivers with active jobs">
+            <i class="fas fa-user-check me-1"></i>Drivers with jobs
+          </button>
+          <button class="btn btn-sm btn-outline-primary quick-question" data-question="Show driver performance">
+            <i class="fas fa-chart-line me-1"></i>Driver performance
+          </button>
+          <button class="btn btn-sm btn-outline-primary quick-question" data-question="Get driver contact list">
+            <i class="fas fa-address-book me-1"></i>Driver contacts
+          </button>
+        </div>
+      </div>
+      
+      <div class="question-group">
+        <h6 class="question-category">🏢 Agents Data</h6>
+        <div class="question-buttons">
+          <button class="btn btn-sm btn-outline-primary quick-question" data-question="Get me all agents">
+            <i class="fas fa-building me-1"></i>All agents
+          </button>
+          <button class="btn btn-sm btn-outline-primary quick-question" data-question="Show active agents">
+            <i class="fas fa-user-check me-1"></i>Active agents
+          </button>
+          <button class="btn btn-sm btn-outline-primary quick-question" data-question="Get agents by type">
+            <i class="fas fa-tags me-1"></i>Agents by type
+          </button>
+          <button class="btn btn-sm btn-outline-primary quick-question" data-question="Show agent performance">
+            <i class="fas fa-chart-bar me-1"></i>Agent performance
+          </button>
+          <button class="btn btn-sm btn-outline-primary quick-question" data-question="Get agent contact list">
+            <i class="fas fa-address-book me-1"></i>Agent contacts
+          </button>
+        </div>
+      </div>
+      
+      <div class="question-group">
+        <h6 class="question-category">🚗 Vehicles Data</h6>
+        <div class="question-buttons">
+          <button class="btn btn-sm btn-outline-primary quick-question" data-question="Get me all vehicles">
+            <i class="fas fa-truck me-1"></i>All vehicles
+          </button>
+          <button class="btn btn-sm btn-outline-primary quick-question" data-question="Show active vehicles">
+            <i class="fas fa-check-circle me-1"></i>Active vehicles
+          </button>
+          <button class="btn btn-sm btn-outline-primary quick-question" data-question="Get vehicles by type">
+            <i class="fas fa-tags me-1"></i>Vehicles by type
+          </button>
+          <button class="btn btn-sm btn-outline-primary quick-question" data-question="Show vehicle assignments">
+            <i class="fas fa-link me-1"></i>Vehicle assignments
+          </button>
+          <button class="btn btn-sm btn-outline-primary quick-question" data-question="Get vehicle status">
+            <i class="fas fa-info-circle me-1"></i>Vehicle status
+          </button>
+        </div>
+      </div>
+      
+      <div class="question-group">
+        <h6 class="question-category">💰 Billing Data</h6>
+        <div class="question-buttons">
+          <button class="btn btn-sm btn-outline-primary quick-question" data-question="Get me all billing records">
+            <i class="fas fa-file-invoice me-1"></i>All billing
+          </button>
+          <button class="btn btn-sm btn-outline-primary quick-question" data-question="Show paid invoices">
+            <i class="fas fa-check-circle me-1"></i>Paid invoices
+          </button>
+          <button class="btn btn-sm btn-outline-primary quick-question" data-question="Get unpaid invoices">
+            <i class="fas fa-exclamation-circle me-1"></i>Unpaid invoices
+          </button>
+          <button class="btn btn-sm btn-outline-primary quick-question" data-question="Show billing by date">
+            <i class="fas fa-calendar me-1"></i>Billing by date
+          </button>
+          <button class="btn btn-sm btn-outline-primary quick-question" data-question="Get revenue summary">
+            <i class="fas fa-chart-pie me-1"></i>Revenue summary
+          </button>
+        </div>
+      </div>
+      
+      <div class="question-group">
+        <h6 class="question-category">🔧 Services Data</h6>
+        <div class="question-buttons">
+          <button class="btn btn-sm btn-outline-primary quick-question" data-question="Get me all services">
+            <i class="fas fa-cogs me-1"></i>All services
+          </button>
+          <button class="btn btn-sm btn-outline-primary quick-question" data-question="Show active services">
+            <i class="fas fa-check-circle me-1"></i>Active services
+          </button>
+          <button class="btn btn-sm btn-outline-primary quick-question" data-question="Get services by type">
+            <i class="fas fa-tags me-1"></i>Services by type
+          </button>
+          <button class="btn btn-sm btn-outline-primary quick-question" data-question="Show service usage">
+            <i class="fas fa-chart-line me-1"></i>Service usage
+          </button>
+          <button class="btn btn-sm btn-outline-primary quick-question" data-question="Get service pricing">
+            <i class="fas fa-dollar-sign me-1"></i>Service pricing
+          </button>
+        </div>
+      </div>
+      
+      <div class="question-group">
+        <h6 class="question-category">📊 Analytics & Reports</h6>
+        <div class="question-buttons">
+          <button class="btn btn-sm btn-outline-primary quick-question" data-question="Get dashboard summary">
+            <i class="fas fa-tachometer-alt me-1"></i>Dashboard summary
+          </button>
+          <button class="btn btn-sm btn-outline-primary quick-question" data-question="Show monthly report">
+            <i class="fas fa-chart-bar me-1"></i>Monthly report
+          </button>
+          <button class="btn btn-sm btn-outline-primary quick-question" data-question="Get performance metrics">
+            <i class="fas fa-chart-line me-1"></i>Performance metrics
+          </button>
+          <button class="btn btn-sm btn-outline-primary quick-question" data-question="Show revenue trends">
+            <i class="fas fa-chart-area me-1"></i>Revenue trends
+          </button>
+          <button class="btn btn-sm btn-outline-primary quick-question" data-question="Get fleet utilization">
+            <i class="fas fa-percentage me-1"></i>Fleet utilization
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <div class="chat-input">
+    <div class="input-group">
+      <input type="text" class="form-control" id="chatInput" placeholder="Type your question...">
+      <button class="btn btn-primary" id="sendMessage">
+        <i class="fas fa-paper-plane"></i>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Chat Toggle Button -->
+<button class="chat-toggle" id="chatToggle">
+  <i class="fas fa-comments"></i>
+</button>
+
+<style>
+.chat-widget {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  width: 600px;
+  height: 600px;
+  background: white;
+  border-radius: 10px;
+  box-shadow: 0 5px 25px rgba(0,0,0,0.2);
+  display: flex;
+  flex-direction: column;
+  z-index: 1000;
+  border: 1px solid #ddd;
+  transition: all 0.3s ease;
+}
+
+.chat-widget.docked {
+  position: relative;
+  bottom: auto;
+  right: auto;
+  width: 100%;
+  height: 500px;
+  margin: 20px 0;
+}
+
+.chat-widget.fullscreen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  border-radius: 0;
+  z-index: 9999;
+}
+
+.chat-header {
+  background: #007bff;
+  color: white;
+  padding: 15px;
+  border-radius: 10px 10px 0 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.chat-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 15px;
+}
+
+.chat-messages {
+  margin-bottom: 15px;
+}
+
+.message {
+  margin-bottom: 15px;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.bot-message {
+  justify-content: flex-start;
+}
+
+.user-message {
+  justify-content: flex-end;
+  flex-direction: row-reverse;
+}
+
+.message-avatar {
+  width: 35px;
+  height: 35px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-size: 16px;
+}
+
+.bot-message .message-avatar {
+  background: #007bff;
+  color: white;
+}
+
+.user-message .message-avatar {
+  background: #28a745;
+  color: white;
+}
+
+.message-content {
+  max-width: 80%;
+  padding: 12px 16px;
+  border-radius: 18px;
+  word-wrap: break-word;
+  position: relative;
+}
+
+.bot-message .message-content {
+  background: #f8f9fa;
+  color: #333;
+  border: 1px solid #e9ecef;
+}
+
+.user-message .message-content {
+  background: #007bff;
+  color: white;
+}
+
+.message-content table {
+  margin-top: 10px;
+  font-size: 0.9rem;
+}
+
+.message-content .table-responsive {
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.download-btn {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  background: rgba(255,255,255,0.9);
+  border: none;
+  border-radius: 50%;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 12px;
+  color: #007bff;
+}
+
+.download-btn:hover {
+  background: rgba(255,255,255,1);
+  color: #0056b3;
+}
+
+.quick-questions {
+  margin-top: 15px;
+  padding: 15px;
+  background: #f8f9fa;
+  border-radius: 10px;
+  border: 1px solid #e9ecef;
+}
+
+.question-group {
+  margin-bottom: 20px;
+}
+
+.question-category {
+  font-size: 1rem;
+  font-weight: bold;
+  color: #495057;
+  margin-bottom: 12px;
+  padding-bottom: 5px;
+  border-bottom: 2px solid #007bff;
+}
+
+.question-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.quick-question {
+  font-size: 0.85rem;
+  padding: 8px 12px;
+  border-radius: 20px;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.quick-question:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.quick-question.answered {
+  background: #28a745;
+  color: white;
+  border-color: #28a745;
+}
+
+.quick-question.answered:hover {
+  background: #218838;
+  border-color: #218838;
+}
+
+.chat-input {
+  padding: 15px;
+  border-top: 1px solid #eee;
+}
+
+.chat-toggle {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  width: 60px;
+  height: 60px;
+  background: #007bff;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  font-size: 20px;
+  cursor: pointer;
+  box-shadow: 0 3px 15px rgba(0,0,0,0.2);
+  z-index: 999;
+  transition: all 0.3s ease;
+}
+
+.chat-toggle:hover {
+  background: #0056b3;
+  transform: scale(1.1);
+}
+
+.chat-widget.hidden {
+  display: none;
+}
+
+.chat-toggle.hidden {
+  display: none;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .chat-widget {
+    width: calc(100vw - 40px);
+    height: calc(100vh - 100px);
+    bottom: 10px;
+    right: 10px;
+    left: 10px;
+  }
+  
+  .chat-widget.docked {
+    width: 100%;
+    height: 400px;
+  }
+  
+  .question-buttons {
+    flex-direction: column;
+  }
+  
+  .quick-question {
+    width: 100%;
+    margin-bottom: 5px;
+  }
+}
+
+@media (max-width: 480px) {
+  .chat-widget {
+    width: calc(100vw - 20px);
+    height: calc(100vh - 80px);
+    bottom: 5px;
+    right: 5px;
+    left: 5px;
+  }
+  
+  .chat-widget.docked {
+    width: 100%;
+    height: 350px;
+  }
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const chatWidget = document.getElementById('chatWidget');
+  const chatToggle = document.getElementById('chatToggle');
+  const minimizeChat = document.getElementById('minimizeChat');
+  const dockChat = document.getElementById('dockChat');
+  const chatMessages = document.getElementById('chatMessages');
+  const chatInput = document.getElementById('chatInput');
+  const sendMessage = document.getElementById('sendMessage');
+  const quickQuestions = document.querySelectorAll('.quick-question');
+
+  // Get saved state from localStorage
+  let isMinimized = localStorage.getItem('chatMinimized') === 'true';
+  let isDocked = localStorage.getItem('chatDocked') === 'true';
+  let isFullscreen = localStorage.getItem('chatFullscreen') === 'true';
+
+  // Initialize chat state
+  if (isMinimized) {
+    chatWidget.classList.add('hidden');
+    chatToggle.classList.remove('hidden');
+  } else {
+    chatWidget.classList.remove('hidden');
+    chatToggle.classList.add('hidden');
+  }
+
+  if (isDocked) {
+    chatWidget.classList.add('docked');
+    const dockIcon = dockChat.querySelector('i');
+    dockIcon.className = 'fas fa-link';
+    chatWidget.style.height = '500px';
+  }
+
+  if (isFullscreen) {
+    chatWidget.classList.add('fullscreen');
+    const maximizeIcon = document.getElementById('maximizeChat').querySelector('i');
+    maximizeIcon.className = 'fas fa-compress';
+  }
+
+  // Toggle chat visibility
+  chatToggle.addEventListener('click', function() {
+    chatWidget.classList.remove('hidden');
+    chatToggle.classList.add('hidden');
+    isMinimized = false;
+    localStorage.setItem('chatMinimized', 'false');
+  });
+
+  minimizeChat.addEventListener('click', function() {
+    chatWidget.classList.add('hidden');
+    chatToggle.classList.remove('hidden');
+    isMinimized = true;
+    localStorage.setItem('chatMinimized', 'true');
+  });
+
+  // Dock/Undock functionality
+  dockChat.addEventListener('click', function() {
+    const dockIcon = this.querySelector('i');
+    
+    if (isDocked) {
+      chatWidget.classList.remove('docked');
+      dockIcon.className = 'fas fa-thumbtack';
+      chatWidget.style.height = '600px';
+      isDocked = false;
+      localStorage.setItem('chatDocked', 'false');
+    } else {
+      chatWidget.classList.add('docked');
+      dockIcon.className = 'fas fa-link';
+      chatWidget.style.height = '500px';
+      isDocked = true;
+      localStorage.setItem('chatDocked', 'true');
+    }
+  });
+
+  // Fullscreen functionality
+  document.getElementById('maximizeChat').addEventListener('click', function() {
+    const maximizeIcon = this.querySelector('i');
+    
+    if (isFullscreen) {
+      chatWidget.classList.remove('fullscreen');
+      maximizeIcon.className = 'fas fa-expand-arrows-alt';
+      isFullscreen = false;
+      localStorage.setItem('chatFullscreen', 'false');
+    } else {
+      chatWidget.classList.add('fullscreen');
+      maximizeIcon.className = 'fas fa-compress';
+      isFullscreen = true;
+      localStorage.setItem('chatFullscreen', 'true');
+    }
+  });
+
+  // Handle quick questions
+  quickQuestions.forEach(button => {
+    button.addEventListener('click', function() {
+      const question = this.getAttribute('data-question');
+      addMessage(question, 'user');
+      
+      // Mark button as answered
+      this.classList.add('answered');
+      
+      fetchDataForQuestion(question);
+    });
+  });
+
+  // Handle manual input
+  sendMessage.addEventListener('click', sendUserMessage);
+  chatInput.addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') {
+      sendUserMessage();
+    }
+  });
+
+  function sendUserMessage() {
+    const message = chatInput.value.trim();
+    if (message) {
+      addMessage(message, 'user');
+      chatInput.value = '';
+      fetchDataForQuestion(message);
+    }
+  }
+
+  async function fetchDataForQuestion(question) {
+    // Show loading message
+    const loadingMessage = document.createElement('div');
+    loadingMessage.className = 'message bot-message';
+    loadingMessage.innerHTML = `
+      <div class="message-content">
+        <p><i class="fas fa-spinner fa-spin"></i> Fetching data...</p>
+      </div>
+    `;
+    chatMessages.appendChild(loadingMessage);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+
+    try {
+      let endpoint = '';
+      let params = {};
+      
+      if (question.includes('jobs')) {
+        endpoint = '/jobs/data';
+        if (question.includes('active')) {
+          params.status = 'active';
+        } else if (question.includes('completed')) {
+          params.status = 'completed';
+        } else if (question.includes('pending')) {
+          params.status = 'pending';
+        } else if (question.includes('today')) {
+          params.date = 'today';
+        } else if (question.includes('week')) {
+          params.date = 'week';
+        }
+      } else if (question.includes('drivers')) {
+        endpoint = '/drivers/data';
+        if (question.includes('active')) {
+          params.status = 'active';
+        } else if (question.includes('inactive')) {
+          params.status = 'inactive';
+        }
+      } else if (question.includes('agents')) {
+        endpoint = '/agents/data';
+        if (question.includes('active')) {
+          params.status = 'active';
+        } else if (question.includes('inactive')) {
+          params.status = 'inactive';
+        }
+      } else if (question.includes('billing')) {
+        endpoint = '/billing/data';
+        if (question.includes('paid')) {
+          params.status = 'paid';
+        } else if (question.includes('unpaid')) {
+          params.status = 'unpaid';
+        }
+      } else if (question.includes('services')) {
+        endpoint = '/services/data';
+        if (question.includes('active')) {
+          params.status = 'active';
+        } else if (question.includes('inactive')) {
+          params.status = 'inactive';
+        }
+      } else if (question.includes('vehicles')) {
+        endpoint = '/vehicles/data';
+        if (question.includes('active')) {
+          params.status = 'active';
+        } else if (question.includes('inactive')) {
+          params.status = 'inactive';
+        }
+      }
+      
+      if (endpoint) {
+        const response = await fetch(endpoint, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+          },
+          body: JSON.stringify(params)
+        });
+        
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        
+        const data = await response.json();
+        
+        // Remove loading message
+        chatMessages.removeChild(loadingMessage);
+        
+        // Create data table
+        if (data.success && data.data && data.data.length > 0) {
+          const table = createDataTable(data.data, data.columns);
+          addMessage(`Here's the data you requested:<br>${table}`, 'bot');
+        } else if (data.error) {
+          addMessage(`Error: ${data.error}`, 'bot');
+        } else {
+          addMessage('No data found for your request.', 'bot');
+        }
+      } else {
+        // Remove loading message
+        chatMessages.removeChild(loadingMessage);
+        addMessage('I can help you find data about jobs, drivers, agents, billing, services, and vehicles. Please ask a specific question about what data you need.', 'bot');
+      }
+    } catch (error) {
+      // Remove loading message
+      chatMessages.removeChild(loadingMessage);
+      
+      if (error.name === 'TypeError' && error.message.includes('fetch')) {
+        addMessage('Network error: Unable to connect to the server. Please check your connection and try again.', 'bot');
+      } else {
+        addMessage('Sorry, I encountered an error while fetching the data. Please try again.', 'bot');
+      }
+    }
+  }
+
+  function createDataTable(data, columns) {
+    if (!data || data.length === 0) return '<p>No data available</p>';
+    
+    let table = '<div class="table-responsive mt-2" style="position: relative;">';
+    table += '<button class="download-btn" onclick="downloadTableData()" title="Download Data"><i class="fas fa-download"></i></button>';
+    table += '<table class="table table-sm table-striped">';
+    
+    // Header
+    table += '<thead><tr>';
+    columns.forEach(col => {
+      table += `<th>${col}</th>`;
+    });
+    table += '</tr></thead>';
+    
+    // Body
+    table += '<tbody>';
+    data.forEach(row => {
+      table += '<tr>';
+      columns.forEach(col => {
+        const value = row[col] || '';
+        table += `<td>${value}</td>`;
+      });
+      table += '</tr>';
+    });
+    table += '</tbody></table></div>';
+    
+    // Store data for download
+    window.currentTableData = { data, columns };
+    
+    return table;
+  }
+
+  function downloadTableData() {
+    if (!window.currentTableData) return;
+    
+    const { data, columns } = window.currentTableData;
+    let csv = columns.join(',') + '\n';
+    
+    data.forEach(row => {
+      const values = columns.map(col => {
+        const value = row[col] || '';
+        return `"${value.toString().replace(/"/g, '""')}"`;
+      });
+      csv += values.join(',') + '\n';
+    });
+    
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'fleet_data.csv';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
+  }
+
+  function addMessage(text, sender) {
+    const messageDiv = document.createElement('div');
+    messageDiv.className = `message ${sender}-message`;
+    
+    const avatar = sender === 'user' ? '<i class="fas fa-user"></i>' : '<i class="fas fa-robot"></i>';
+    
+    messageDiv.innerHTML = `
+      <div class="message-avatar">
+        ${avatar}
+      </div>
+      <div class="message-content">
+        <p>${text}</p>
+      </div>
+    `;
+    chatMessages.appendChild(messageDiv);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+  }
+});
+</script> 

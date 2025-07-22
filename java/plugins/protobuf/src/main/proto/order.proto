@@ -1,0 +1,13 @@
+syntax = "proto3";
+
+option java_package = "com.applicationsx.protobuf";
+option java_outer_classname = "OrderProto";
+
+message OrderMessage {
+  string id = 1;
+  string customer_name = 2;
+  repeated string items = 3;
+  double total_amount = 4;
+  string status = 5;
+  int64 created_timestamp = 6;
+}
